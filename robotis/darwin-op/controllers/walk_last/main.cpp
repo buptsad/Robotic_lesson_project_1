@@ -21,8 +21,8 @@
 using namespace webots;
 
 int main(int argc, char **argv) {
-  PathPlanning *task = new PathPlanning({0, 1, 0, 2, 3, 4, 5, 6});
-  task->showInOrder();
-  delete task;
+  Walk *controller = new Walk();
+  controller->run();
+  delete controller;
   return EXIT_FAILURE;
 }

@@ -38,7 +38,6 @@ namespace webots {
   class Speaker;
 };  // namespace webots
 
-typedef float fp32;
 
 typedef struct Point
 {
@@ -46,44 +45,7 @@ typedef struct Point
   float y;
 }Point;
 
-typedef struct PointWithYaw
-{
-  Point p;
-  fp32 yaw;
-}PointWithYaw;
 
-//----------Ke's code begin----------
-/*
-*************************************
-exhibit1 ** exhibit3        exhibit4
-         **
-  #1     **   #3              #4
-         **             **
-                        **
-  #0         #2 exhibit2**
-                        **
-                        **
-         **             **
-         **  #6               #5
-         **
-  robot  ** exhibit6        exhibit5
-*/
-
-// AUTO_MOVE 和 RUNNIG 两种状态相互转换
-
-typedef enum {
-  START=0, //已启动，但原地踏步
-  RUNNING=1, //直线运动中
-  SHOW=2, //展示展品中
-  OFF=3, //取消启动
-  REVOLVE=4, //旋转时
-  AUTO_MOVE=5, //自动移动
-}RobotStatu_e;
-
-
-
-
-//----------Ke's code end----------
 
 class Walk : public webots::Robot {
 public:
@@ -93,13 +55,14 @@ public:
   void checkIfFallen();
   void RaiseArmToShow(bool &isWalking);
   void Go2Point(Point target_point);
-  void RevolveYaw(fp32 target_yaw);
   void GetNowPosition();
   void GetLidarData();
 
   void Go2PointTangentBug(Point target_point);
 
   void GetDistanceSensorsValues();
+
+private:
   int mTimeStep;
 
   void myStep();
@@ -113,6 +76,7 @@ public:
   webots::Keyboard *mKeyboard;
   webots::Lidar *mLidar;
   webots::DistanceSensor *mDistanceSensors[6];
+
   managers::RobotisOp2MotionManager *mMotionManager;
   managers::RobotisOp2GaitManager *mGaitManager;
 
@@ -122,22 +86,4 @@ public:
   float distance_sensors_values[6];
 };
 
-//----------Ke's code begin----------
-
-class PathPlanning {
-private:
-  RobotStatu_e robotStatu;
-  int current_step;
-  Walk *controller;
-
-  std::vector<PointWithYaw> key_points;
-
-public:
-  PathPlanning();
-  PathPlanning(std::vector<int> show_order);
-  ~PathPlanning();
-  void showInOrder();
-  std::vector<int> show_order;
-};
-//----------Ke's code end----------
 #endif
