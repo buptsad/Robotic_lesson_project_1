@@ -15,6 +15,7 @@
 // Description:   Manage the entree point function
 
 #include "Walk.hpp"
+#include "PathPlanning.hpp"
 
 #include <cstdlib>
 

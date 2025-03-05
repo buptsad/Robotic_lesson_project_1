@@ -38,7 +38,9 @@ namespace webots {
   class Speaker;
 };  // namespace webots
 
+#ifndef fp32
 typedef float fp32;
+#endif
 
 typedef struct Point
 {
@@ -97,7 +99,7 @@ public:
   void GetNowPosition();
   void GetLidarData();
 
-  void Go2PointTangentBug(Point target_point);
+  void Go2PointBug0(Point target_point);
 
   void GetDistanceSensorsValues();
   int mTimeStep;
@@ -122,22 +124,4 @@ public:
   float distance_sensors_values[6];
 };
 
-//----------Ke's code begin----------
-
-class PathPlanning {
-private:
-  RobotStatu_e robotStatu;
-  int current_step;
-  Walk *controller;
-
-  std::vector<PointWithYaw> key_points;
-
-public:
-  PathPlanning();
-  PathPlanning(std::vector<int> show_order);
-  ~PathPlanning();
-  void showInOrder();
-  std::vector<int> show_order;
-};
-//----------Ke's code end----------
 #endif
