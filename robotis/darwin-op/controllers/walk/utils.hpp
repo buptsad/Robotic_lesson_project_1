@@ -8,6 +8,12 @@
 typedef float fp32;
 #endif
 
+// 关键点数组声明
+extern std::vector<PointWithYaw> key_points;
+
+// 预设路径声明
+extern std::vector<std::vector<int>> current_orders;
+
 // 获取展示顺序
 std::vector<int> getShowOrder(int start, int end);
 

@@ -13,7 +13,7 @@ private:
     RobotStatu_e robotStatu;
     int current_step;
     Walk *controller;
-    std::vector<PointWithYaw> key_points;
+    // 已移除 std::vector<PointWithYaw> key_points;
 
 public:
     PathPlanning();

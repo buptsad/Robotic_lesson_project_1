@@ -1,8 +1,32 @@
 #include "utils.hpp"
 #include <cmath>
 #include <vector>
+#include <limits>
 
 using namespace std;
+
+#ifndef NOT_REVOLVE
+#define NOT_REVOLVE std::numeric_limits<float>::infinity()
+#endif
+
+// 定义关键点数组
+std::vector<PointWithYaw> key_points = {
+    {{3.2, 3.3}, NOT_REVOLVE},
+    {{6.2, 3.3}, 0.0f},
+    {{3.5, 0.3}, -M_PI/2.0f},
+    {{5.8, 0.3}, 0.0f},
+    {{5.8, -3.2}, 0.0f},
+    {{1.5, -3.2}, M_PI},
+    {{1.5, 0.3}, M_PI}
+};
+
+// 定义预设路径
+std::vector<std::vector<int>> current_orders = {
+    {1, 0, 2, 3, 4, 5, 6},  // current_order1
+    {1, 0, 2, 6, 5, 4, 3},  // current_order2
+    {6, 5, 4, 3, 2, 0, 1},  // current_order3
+    {3, 4, 5, 6, 2, 0, 1}   // current_order4
+};
 
 bool isAutoMove() { // TODO: 自由移动
   return false;
@@ -26,10 +50,8 @@ vector<int> getShowOrder(int start, int end) {
     output_ordert = {6, 2, 3};
     return output_ordert;
   }
-  vector<int> current_order1 = {1, 0, 2, 3, 4, 5, 6};
-  vector<int> current_order2 = {1, 0, 2, 6, 5, 4, 3};
-  vector<int> current_order3 = {6, 5, 4, 3, 2, 0, 1};
-  vector<int> current_order4 = {3, 4, 5, 6, 2, 0, 1};
+  
+  // 使用全局变量current_orders替代局部变量
   auto f = [](int start, int end, vector<int> current_order) {
     vector<int> output_order = {};
     bool findStart = false;
@@ -49,15 +71,18 @@ vector<int> getShowOrder(int start, int end) {
         output_order = {};
         break;
       }
-
     }
     return output_order;
   };
+  
   vector<vector<int>> nonEmptyVectors;
-  if (!f(start, end, current_order1).empty()) {nonEmptyVectors.push_back(f(start, end, current_order1));}
-  if (!f(start, end, current_order2).empty()) {nonEmptyVectors.push_back(f(start, end, current_order2));}
-  if (!f(start, end, current_order3).empty()) {nonEmptyVectors.push_back(f(start, end, current_order3));}
-  if (!f(start, end, current_order4).empty()) {nonEmptyVectors.push_back(f(start, end, current_order4));}
+  for (const auto& order : current_orders) {
+    auto result = f(start, end, order);
+    if (!result.empty()) {
+      nonEmptyVectors.push_back(result);
+    }
+  }
+  
   if (nonEmptyVectors.empty()) {
     return {};
   }

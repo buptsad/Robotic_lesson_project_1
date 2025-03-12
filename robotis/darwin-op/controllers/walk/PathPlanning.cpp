@@ -15,15 +15,7 @@ PathPlanning::PathPlanning() {
   PathPlanning::robotStatu = START;
   PathPlanning::current_step = 0;
   PathPlanning::show_order = {};
-  key_points = {
-    {{3.2, 3.3}, NOT_REVOLVE},
-    {{6.2, 3.3}, 0.0f},
-    {{3.5, 0.3}, -M_PI/2.0f},
-    {{5.8, 0.3}, 0.0f},
-    {{5.8, -3.2}, 0.0f},
-    {{1.5, -3.2}, M_PI},
-    {{1.5, 0.3}, M_PI}
-  };
+  // 已移除 key_points 的初始化
   PathPlanning::controller = new Walk();
 }
 
@@ -31,15 +23,7 @@ PathPlanning::PathPlanning(std::vector<int> show_order) {
   PathPlanning::robotStatu = START;
   PathPlanning::current_step = 0;
   PathPlanning::show_order = show_order;
-  key_points = {
-    {{3.5, 3.3}, NOT_REVOLVE},
-    {{6.2, 3.3}, 0.0f},
-    {{3.5, 0.3}, -M_PI/2.0f},
-    {{5.8, 0.3}, 0.0f},
-    {{5.8, -3.2}, 0.0f},
-    {{1.5, -3.2}, M_PI},
-    {{1.5, 0.3}, M_PI}
-  };
+  // 已移除 key_points 的初始化
   PathPlanning::controller = new Walk();
 }
 
