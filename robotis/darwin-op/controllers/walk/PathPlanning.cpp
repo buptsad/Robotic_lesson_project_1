@@ -157,7 +157,7 @@ void PathPlanning::showInOrder() {
             PathPlanning::robotStatu = RobotStatu_e::REVOLVE;
           }
           else {
-            controller->Go2PointBug0(key_points[show_order[current_step]].p);
+            controller->Go2PointBug0Improved(key_points[show_order[current_step]].p);
           }
           if (isAutoMove()) {
             PathPlanning::robotStatu = RobotStatu_e::AUTO_MOVE;

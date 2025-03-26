@@ -147,6 +147,154 @@ void Walk::Go2Point(Point target_point){
 }
 
 float thre = 4.5;
+
+void Walk::Go2PointBug0Improved(Point target_point) {
+  // 获取机器人当前位置
+  double x = now_position.x;
+  double y = now_position.y;
+  double theta = now_yaw;
+  double x_target = target_point.x;
+  double y_target = target_point.y;
+  double theta_target = atan2(y_target - y, x_target - x);
+  double distance = sqrt(pow(x_target - x, 2) + pow(y_target - y, 2));
+  double angle = theta_target - theta;
+  if (angle > M_PI)
+    angle -= 2 * M_PI;
+  if (angle < -M_PI)
+    angle += 2 * M_PI;
+
+  // 如果角度较大且前方无障碍物，直接前往目标点
+  if (fabs(angle) > M_PI/6 && lidar_depths[90] > 0.8) {
+    Go2Point(target_point);
+    return;
+  }
+
+  // 检测障碍物左侧边缘
+  int left_edge = -1;
+  for (int j = 45; j < 135; j++) {
+    if (lidar_depths[j+1] > 2.0) {
+      continue;
+    }
+    if (lidar_depths[j] - lidar_depths[j+1] > 0.8) {
+      left_edge = j+1;
+      break;
+    }
+  }
+
+  // 检测障碍物右侧边缘
+  int right_edge = -1;
+  for (int j = 135; j > 45; j--) {
+    if (lidar_depths[j-1] > 2.0) {
+      continue;
+    }
+    if (lidar_depths[j] - lidar_depths[j-1] > 0.8) {
+      right_edge = j-1;
+      break;
+    }
+  }
+
+  // 如果没有检测到任何障碍物，直接前往目标点
+  if (left_edge == -1 && right_edge == -1) {
+    Go2Point(target_point);
+    return;
+  }
+
+  float x_left_obstacle = 0.0;
+  float y_left_obstacle = 0.0;
+  float min_left_distance = 100.0;
+  
+  // 如果检测到左侧边缘
+  if (left_edge != -1) {
+    // 计算障碍物左侧边缘点的坐标
+    x_left_obstacle = x + lidar_depths[left_edge] * sin(left_edge * M_PI / 180 + now_yaw);
+    y_left_obstacle = y + lidar_depths[left_edge] * cos(left_edge * M_PI / 180 + now_yaw);
+
+    // 计算左侧空间 - 使用欧式距离
+    for (int j = left_edge - 15; j < left_edge; j++) {
+      if (j >= 0 && j < 180) {
+        // 计算当前点的坐标
+        float x_point = x + lidar_depths[j] * sin(j * M_PI / 180 + now_yaw);
+        float y_point = y + lidar_depths[j] * cos(j * M_PI / 180 + now_yaw);
+        
+        // 计算当前点到左侧边缘点的欧式距离
+        float dist = sqrt(pow(x_point - x_left_obstacle, 2) + pow(y_point - y_left_obstacle, 2));
+        min_left_distance = min(min_left_distance, dist);
+      }
+    }
+  }
+
+  float x_right_obstacle = 0.0;
+  float y_right_obstacle = 0.0;
+  
+  // 如果检测到右侧边缘
+  if (right_edge != -1) {
+    x_right_obstacle = x + lidar_depths[right_edge] * sin(right_edge * M_PI / 180 + now_yaw);
+    y_right_obstacle = y + lidar_depths[right_edge] * cos(right_edge * M_PI / 180 + now_yaw);
+  }
+
+  // 判断障碍物是否在目标点前方
+  int obstacled = 0;
+  int ratio1 = 1;
+  float temp_yaw = now_yaw + M_PI/2;
+  if (temp_yaw > M_PI) {
+    temp_yaw -= 2 * M_PI;
+  }
+  if (temp_yaw < -M_PI) {
+    temp_yaw += 2 * M_PI;
+  }
+
+  // 判断障碍物是否在目标点前方
+  // 优先使用左侧边缘判断，如果没有左侧边缘则使用右侧边缘
+  float x_obstacle = (left_edge != -1) ? x_left_obstacle : x_right_obstacle;
+  float y_obstacle = (left_edge != -1) ? y_left_obstacle : y_right_obstacle;
+
+  if (temp_yaw > M_PI/3 && temp_yaw < 2 * M_PI/3) {
+    if (x_obstacle < x_target) {
+      obstacled = 1;
+      ratio1 = 1;
+    }
+  } else if (temp_yaw > -2 * M_PI/3 && temp_yaw < -M_PI/3) {
+    if (x_obstacle > x_target) {
+      obstacled = 1;
+      ratio1 = -1;
+    }
+  } else if (temp_yaw > -M_PI/3 && temp_yaw < M_PI/3) {
+    if (y_obstacle > y_target) {
+      obstacled = 1;
+      ratio1 = -1;
+    }
+  } else {
+    if (y_obstacle < y_target) {
+      obstacled = 1;
+      ratio1 = 1;
+    }
+  }
+
+  if (obstacled) {
+    // 决定绕行方向
+    // 1. 如果只检测到左侧边缘，从左侧绕行
+    // 2. 如果只检测到右侧边缘，从右侧绕行
+    // 3. 如果两侧都检测到，且左侧空间小于1.0，从右侧绕行
+    // 4. 否则从左侧绕行
+    if (left_edge == -1 && right_edge != -1) {
+      // 只检测到右侧边缘，从右侧绕行
+      Go2Point({x_right_obstacle + thre*ratio1, y_right_obstacle - thre*ratio1});
+      printf("只检测到右侧边缘，从右侧绕行\n");
+    } else if (left_edge != -1 && (right_edge == -1 || min_left_distance >= 1.0)) {
+      // 只检测到左侧边缘或左侧空间足够，从左侧绕行
+      Go2Point({x_left_obstacle - thre*ratio1, y_left_obstacle + thre*ratio1});
+      printf("从左侧绕行，左侧最小距离: %f\n", min_left_distance);
+    } else if (left_edge != -1 && right_edge != -1 && min_left_distance < 1.0) {
+      // 两侧都检测到且左侧空间不足，从右侧绕行
+      Go2Point({x_right_obstacle + thre*ratio1, y_right_obstacle - thre*ratio1});
+      printf("左侧空间不足，从右侧绕行，左侧最小距离: %f\n", min_left_distance);
+    }
+  } else {
+    // 障碍物在目标点后方，直接前往目标点
+    Go2Point(target_point);
+  }
+}
+
 void Walk::Go2PointBug0(Point target_point){
   // get the current position of the robot
   double x = now_position.x;

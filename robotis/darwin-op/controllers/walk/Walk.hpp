@@ -100,6 +100,7 @@ public:
   void GetLidarData();
 
   void Go2PointBug0(Point target_point);
+  void Go2PointBug0Improved(Point target_point);
 
   void GetDistanceSensorsValues();
   int mTimeStep;
